@@ -225,6 +225,7 @@
 
             foreach (var defensivePropertySet in defensivePropertySetCollection.Collection.Values)
             {
+                // Name (if present) and property set
                 if (nameProvided)
                 {
                     sb.AppendLine($"{name} [{incrementer}/{defensivePropertySetCount}]");
@@ -236,8 +237,8 @@
                 var offensivePropertySetsForNonImmunities = offensivePropertySets.Where(c => !c.TargetIsImmune).ToList();
                 var offensivePropertySetsForImmunities = offensivePropertySets.Where(c => c.TargetIsImmune).ToList();
 
+                // Cumulative sum
                 var offensivePropertyCumulativeSum = offensivePropertySets.Sum(c => c.TargetResistanceValue);
-
                 if (offensivePropertySetsForImmunities.Count != 0)
                 {
                     sb.AppendLine("Cumulative Sum:");
@@ -249,17 +250,19 @@
                     sb.AppendLine($"Cumulative Sum: {offensivePropertyCumulativeSum}");
                 }
 
+                // Sum and count of targeting resistance values at or above zero
                 var offensivePropertySetsWithPositiveOrZeroSums = offensivePropertySets.Where(c => c.TargetResistanceValue >= 0).ToList();
                 sb.AppendLine($"Positive Sum With Zero: {offensivePropertySetsWithPositiveOrZeroSums.Sum(c => c.TargetResistanceValue)}");
                 sb.AppendLine($"Positive Count With Zero: {offensivePropertySetsWithPositiveOrZeroSums.Count}");
 
+                var offensivePropertySetsForNonImmunitiesGroupedBySum = offensivePropertySetsForNonImmunities.GroupBy(c => c.TargetResistanceValue).OrderByDescending(d => d.Key).ToList();
+                var offensivePropertySetsForImmunitiesGroupedBySum = offensivePropertySetsForImmunities.GroupBy(c => c.TargetResistanceValue).OrderByDescending(d => d.Key).ToList();
+
+                // Sum histogram
                 sb.AppendLine("Sum Histogram:");
-
-                var offensivePropertySetsForNonImmunitiesGroupedBySum = offensivePropertySetsForNonImmunities.GroupBy(c => c.TargetResistanceValue).ToList();
-                var offensivePropertySetsForImmunitiesGroupedBySum = offensivePropertySetsForImmunities.GroupBy(c => c.TargetResistanceValue).ToList();
-
                 offensivePropertySetsForNonImmunitiesGroupedBySum.ForEach(c => sb.AppendLine($" Value: {c.Key, -4} | Count: {c.Count(), -2} | Properties: {string.Join(", ", c.Select(d => d.ToString()))}"));
 
+                // Immunity histogram
                 if (offensivePropertySetsForImmunitiesGroupedBySum.Count != 0)
                 {
                     sb.AppendLine($"Immunities: {offensivePropertySetsForImmunities.Count}");
@@ -273,6 +276,7 @@
                 incrementer++;
             }
 
+            // Best targeting offensive properties (if present)
             if (printBestOffensiveProperties && defensivePropertySetCount > 0)
             {
                 if (nameProvided)
@@ -281,8 +285,8 @@
                 }
 
                 sb.AppendLine("Best Targeting Properties:");
-                var bestOffensiveProperties = defensivePropertySetCollection.GetBestOffensivePropertySets();
-                foreach (var bestOffensivePropertySet in bestOffensiveProperties.Take(bestOffensivePropertiesCount))
+                var bestOffensivePropertySets = defensivePropertySetCollection.GetBestOffensivePropertySets();
+                foreach (var bestOffensivePropertySet in bestOffensivePropertySets.Take(bestOffensivePropertiesCount))
                 {
                     sb.AppendLine($" {bestOffensivePropertySet}");
                 }
